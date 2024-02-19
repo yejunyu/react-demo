@@ -12,7 +12,6 @@ const App = () => {
 
   useEffect(() => {
     node.getAll().then((res) => {
-      console.log(res);
       setPersons(res);
       setFilterPersons(res);
     });
@@ -28,8 +27,16 @@ const App = () => {
   };
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (persons.some((p) => p.name == newName)) {
-      alert(`${newName} is already added to phonebook`);
+    const person = persons.find((p) => p.name == newName);
+    // if (persons.some((p) => p.name == newName)) {
+    if (person) {
+      if (window.confirm(`${newName} is already added to phonebook`)) {
+        node.update(person.id, { ...person, phone: newPhone }).then((res) => {
+          const copy = persons.filter((p) => p.id != res.id);
+          setPersons(copy.concat(res));
+          setFilterPersons(copy.concat(res));
+        });
+      }
       return;
     }
     const newObj = {
@@ -37,16 +44,28 @@ const App = () => {
       phone: newPhone,
     };
     node.create(newObj).then((res) => {
-      console.log(res);
+      setPersons(persons.concat(res));
+      setFilterPersons(filterPersons.concat(res));
     });
-    setPersons(persons.concat(newObj));
-    setFilterPersons(filterPersons.concat(newObj));
   };
   const handleSearch = (e) => {
     const compareNames = persons.filter((p) =>
       p.name.toLowerCase().includes(e.target.value.toLowerCase())
     );
     setFilterPersons(compareNames);
+  };
+
+  const handleDel = (id) => {
+    console.log(id);
+    if (window.confirm("你确定要删除吗")) {
+      node.del(id).then((res) => {
+        if (res) {
+          const copy = persons.filter((p) => p.id != id);
+          setPersons(copy);
+          setFilterPersons(copy);
+        }
+      });
+    }
   };
   return (
     <div>
@@ -59,7 +78,7 @@ const App = () => {
         handlePhoneChange={handlePhoneChange}
       />
       <h3>Numbers</h3>
-      <Persons persons={filterPersons} />
+      <Persons persons={filterPersons} handleDel={handleDel} />
       <div>debug: {newName}</div>
     </div>
   );
