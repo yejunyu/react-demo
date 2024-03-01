@@ -4,19 +4,19 @@ import axios from "axios";
 const App = () => {
   const [value, setValue] = useState("");
   const [country, setCountry] = useState({});
+  const [countryList, setCountryLIst] = useState([]);
   const [searchList, setSearchList] = useState([]);
 
   useEffect(() => {
     axios
       .get(`https://studies.cs.helsinki.fi/restcountries/api/all`)
       .then((res) => {
-        console.log(res);
+        setCountryLIst(res.data);
       });
   }, []);
 
   const handleChange = (event) => {
     const v = event.target.value;
-
     setValue(event.target.value);
   };
 
