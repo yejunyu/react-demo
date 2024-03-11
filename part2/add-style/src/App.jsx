@@ -1,33 +1,33 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import FilterCountries from "./components/FilterCountries";
+import Counties from "./components/Countries";
 
 const App = () => {
   const [value, setValue] = useState("");
-  const [country, setCountry] = useState({});
-  const [countryList, setCountryLIst] = useState([]);
   const [searchList, setSearchList] = useState([]);
 
   useEffect(() => {
     axios
       .get(`https://studies.cs.helsinki.fi/restcountries/api/all`)
       .then((res) => {
-        setCountryLIst(res.data);
+        setSearchList(res.data);
       });
   }, []);
 
   const handleChange = (event) => {
     const v = event.target.value;
     setValue(event.target.value);
-  };
-
-  const onSearch = (event) => {
-    event.preventDefault();
-    setCurrency(value);
+    const filtered = searchList.filter((item) =>
+      item.name.common.toLowerCase().includes(v.toLowerCase())
+    );
+    setSearchList(filtered);
   };
 
   return (
     <div>
-      find countries <input type="text" onChange={handleChange} />
+      <FilterCountries value={value} handleChange={handleChange} />
+      <Counties searchList={searchList} />
     </div>
   );
 };
