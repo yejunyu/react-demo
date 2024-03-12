@@ -5,22 +5,26 @@ import Counties from "./components/Countries";
 
 const App = () => {
   const [value, setValue] = useState("");
+  const [countries, setCountries] = useState([]);
   const [searchList, setSearchList] = useState([]);
 
   useEffect(() => {
     axios
       .get(`https://studies.cs.helsinki.fi/restcountries/api/all`)
       .then((res) => {
+        setCountries(res.data);
         setSearchList(res.data);
       });
   }, []);
 
   const handleChange = (event) => {
     const v = event.target.value;
+    console.log(v);
     setValue(event.target.value);
-    const filtered = searchList.filter((item) =>
+    const filtered = countries.filter((item) =>
       item.name.common.toLowerCase().includes(v.toLowerCase())
     );
+    console.log(filtered);
     setSearchList(filtered);
   };
 
