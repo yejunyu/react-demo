@@ -7,6 +7,7 @@ const app = express();
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cors());
+app.use(express.static("dist"));
 
 const requestLogger = (request, response, next) => {
   console.log("Method:", request.method);
@@ -86,4 +87,5 @@ const unknownEndpoint = (request, response, next) => {
 };
 
 app.use(unknownEndpoint);
-app.listen(3001, () => console.log("Server is running on port 3000"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
