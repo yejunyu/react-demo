@@ -12,6 +12,7 @@ const App = () => {
 
   useEffect(() => {
     node.getAll().then((res) => {
+      console.log(res);
       setPersons(res);
       setFilterPersons(res);
     });

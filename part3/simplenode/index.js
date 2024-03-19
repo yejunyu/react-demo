@@ -1,9 +1,12 @@
 const express = require("express");
+// 日志
 const morgan = require("morgan");
+const cors = require("cors");
 
 const app = express();
 app.use(morgan("dev"));
 app.use(express.json());
+app.use(cors());
 
 const requestLogger = (request, response, next) => {
   console.log("Method:", request.method);
