@@ -1,3 +1,5 @@
+const Person = require("./mongo");
+
 const express = require("express");
 // 日志
 const morgan = require("morgan");
@@ -20,66 +22,60 @@ const requestLogger = (request, response, next) => {
 
 app.use(requestLogger);
 morgan.token("body", (request) => JSON.stringify(request.body));
-let persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
 
 app.get("/", (req, res) => {
   res.send("<h1>Hello World!</h1>");
 });
 
 app.get("/api/persons", (req, res) => {
-  res.json(persons);
+  Person.find({}).then((data) => {
+    res.json(data);
+  });
 });
 app.get("/info", (req, res) => {
-  res.send(`<h4>Phonebook has info for ${persons.length} people</h4>
+  Person.find({}).then((data) => {
+    res.send(`<h4>Phonebook has info for ${data.length} people</h4>
   <div>${new Date()}</div>
   `);
+  });
 });
 
 app.get("/api/persons/:id", (req, res) => {
-  const person = persons.find(
-    (person) => person.id === parseInt(req.params.id)
-  );
-  if (person) {
-    res.json(person);
-  } else {
-    res.status(404).end();
-  }
+  const id = req.params.id;
+  Person.findById(id)
+    .then((data) => {
+      if (data) {
+        res.json(data);
+      } else {
+        res.status(404).end();
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      res.status(400).send({ error: "Could not find person" });
+    });
 });
 
 app.post("/api/persons", (req, res) => {
-  const maxId =
-    persons.length > 0 ? Math.max(...persons.map((person) => person.id)) : 0;
-  const person = req.body;
-  person.id = maxId + 1;
-  persons = persons.concat(person);
-  res.json(person);
+  const body = req.body;
+  if (body.name === undefined) {
+    return res.status(400).json({ error: "name missing" });
+  }
+  const person = new Person({
+    name: body.name,
+    phone: body.phone,
+  });
+  person.save().then((savedPerson) => {
+    res.json(savedPerson);
+  });
 });
 
 app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  persons = persons.filter((person) => person.id !== id);
-  res.status(204).end();
+  const id = req.params.id;
+  Person.deleteOne({ _id: id }).then((result) => {
+    res.json(result);
+    res.status(204).end();
+  });
 });
 
 const unknownEndpoint = (request, response, next) => {
