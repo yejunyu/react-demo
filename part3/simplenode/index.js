@@ -1,4 +1,4 @@
-const Person = require("./mongo");
+const Abc = require("./mongo");
 
 const express = require("express");
 // 日志
@@ -32,6 +32,7 @@ app.get("/api/persons", (req, res) => {
     res.json(data);
   });
 });
+
 app.get("/info", (req, res) => {
   Person.find({}).then((data) => {
     res.send(`<h4>Phonebook has info for ${data.length} people</h4>
@@ -40,7 +41,7 @@ app.get("/info", (req, res) => {
   });
 });
 
-app.get("/api/persons/:id", (req, res) => {
+app.get("/api/persons/:id", (req, res, next) => {
   const id = req.params.id;
   Person.findById(id)
     .then((data) => {
@@ -50,24 +51,45 @@ app.get("/api/persons/:id", (req, res) => {
         res.status(404).end();
       }
     })
-    .catch((error) => {
-      console.log(error);
-      res.status(400).send({ error: "Could not find person" });
-    });
+    // .catch((error) => {
+    //   console.log(error);
+    //   res.status(400).send({ error: "Could not find person" });
+    // });
+    .catch((error) => next(error));
 });
 
 app.post("/api/persons", (req, res) => {
+  console.log("111111");
   const body = req.body;
   if (body.name === undefined) {
     return res.status(400).json({ error: "name missing" });
   }
-  const person = new Person({
+
+  console.log("111111");
+  const person = new Abc({
     name: body.name,
     phone: body.phone,
   });
+
   person.save().then((savedPerson) => {
     res.json(savedPerson);
   });
+});
+
+app.put("/api/persons/:id", (req, res, next) => {
+  const body = req.body;
+  if (body.name === undefined) {
+    return res.status(400).json({ error: "name missing" });
+  }
+  const person = {
+    name: body.name,
+    phone: body.phone,
+  };
+  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+    .then((updatedPerson) => {
+      res.json(updatedPerson);
+    })
+    .catch((error) => next(error));
 });
 
 app.delete("/api/persons/:id", (req, res) => {
@@ -78,10 +100,19 @@ app.delete("/api/persons/:id", (req, res) => {
   });
 });
 
+// unknown和error的处理放api的后面
 const unknownEndpoint = (request, response, next) => {
   response.status(404).send({ error: "unknown endpoint" });
 };
-
 app.use(unknownEndpoint);
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  }
+  next(error);
+};
+app.use(errorHandler);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
