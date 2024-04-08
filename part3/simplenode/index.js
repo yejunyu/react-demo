@@ -1,4 +1,4 @@
-const Abc = require("./mongo");
+const Person = require("./mongo");
 
 const express = require("express");
 // 日志
@@ -58,22 +58,25 @@ app.get("/api/persons/:id", (req, res, next) => {
     .catch((error) => next(error));
 });
 
-app.post("/api/persons", (req, res) => {
-  console.log("111111");
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
   if (body.name === undefined) {
     return res.status(400).json({ error: "name missing" });
   }
 
-  console.log("111111");
-  const person = new Abc({
+  const person = new Person({
     name: body.name,
     phone: body.phone,
   });
 
-  person.save().then((savedPerson) => {
-    res.json(savedPerson);
-  });
+  person
+    .save()
+    .then((savedPerson) => {
+      res.json(savedPerson);
+    })
+    .catch((error) => {
+      next(error);
+    });
 });
 
 app.put("/api/persons/:id", (req, res, next) => {
@@ -85,7 +88,11 @@ app.put("/api/persons/:id", (req, res, next) => {
     name: body.name,
     phone: body.phone,
   };
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+  Person.findByIdAndUpdate(req.params.id, person, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  })
     .then((updatedPerson) => {
       res.json(updatedPerson);
     })
@@ -109,6 +116,8 @@ const errorHandler = (error, request, response, next) => {
   console.error(error.message);
   if (error.name === "CastError") {
     return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message });
   }
   next(error);
 };

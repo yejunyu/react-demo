@@ -3,12 +3,15 @@ import PersonForm from "./components/form/form-component";
 import Persons from "./components/person/person-component";
 import Filter from "./components/filter/filter-component";
 import node from "./services/node";
+import Notify from "./components/notifyMsg/notify-component";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [filterPersons, setFilterPersons] = useState([]);
+  const [msg, setMsg] = useState("");
+  const [notifyStyle, setNotifyStyle] = useState("");
 
   useEffect(() => {
     node.getAll().then((res) => {
@@ -44,10 +47,25 @@ const App = () => {
       name: newName,
       phone: newPhone,
     };
-    node.create(newObj).then((res) => {
-      setPersons(persons.concat(res));
-      setFilterPersons(filterPersons.concat(res));
-    });
+    node
+      .create(newObj)
+      .then((res) => {
+        setPersons(persons.concat(res));
+        setFilterPersons(filterPersons.concat(res));
+        setMsg(`${res.name} is added to phonebook`);
+        setNotifyStyle("notify");
+        setTimeout(() => {
+          setMsg(null);
+        }, 3000);
+      })
+      .catch((error) => {
+        console.log(error.response.data.error);
+        setMsg(error.response.data.error);
+        setNotifyStyle("error");
+        setTimeout(() => {
+          setMsg(null);
+        }, 3000);
+      });
   };
   const handleSearch = (e) => {
     const compareNames = persons.filter((p) =>
@@ -71,6 +89,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notify msg={msg} notifyStyle={notifyStyle} />
       <Filter handleSearch={handleSearch} />
       <h3>Add a new</h3>
       <PersonForm
