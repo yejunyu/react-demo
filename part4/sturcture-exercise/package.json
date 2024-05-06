@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
-    "test": "node --test",
+    "start": "cross-env NODE_ENV=prod node index.js",
+    "dev": "cross-env NODE_ENV=dev nodemon index.js",
+    "test": "cross-env NODE_ENV=test node --test",
     "build:ui": "rm -rf dist && cd ../data-form-server/ && pnpm run build && cp -r dist  ../simplenode/",
     "deploy": "fly deploy",
     "deploy:full": "pnpm run build:ui && fly deploy",
@@ -26,9 +26,11 @@
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@flydotio/dockerfile": "^0.5.3",
+    "cross-env": "^7.0.3",
     "eslint": "^9.0.0",
     "eslint-plugin-react": "^7.34.1",
     "globals": "^15.0.0",
-    "nodemon": "^3.1.0"
+    "nodemon": "^3.1.0",
+    "supertest": "^7.0.0"
   }
 }
